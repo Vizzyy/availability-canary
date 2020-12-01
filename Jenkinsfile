@@ -60,7 +60,7 @@ pipeline {
         stage("Package") {
             steps {
                 script {
-                    sh("sam package --s3-bucket vizzyy-packaging --output-template-file packaged.yml")
+                    sh("/usr/local/bin/sam package --s3-bucket vizzyy-packaging --output-template-file packaged.yml")
                 }
             }
         }
@@ -73,7 +73,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh("sam deploy --template-file packaged.yml --stack-name $FUNC_NAME --capabilities CAPABILITY_IAM")
+                    sh("/usr/local/bin/sam deploy --template-file packaged.yml --stack-name $FUNC_NAME --capabilities CAPABILITY_IAM")
                 }
             }
         }
