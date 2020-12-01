@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  LambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'availability-canary'
+      Handler: availability-canary.lambda_handler
+      Runtime: python3.8
+      CodeUri: lambda_function.zip
+      MemorySize: 128
+      Timeout: 10
+      Role: 'arn:aws:iam::476889715112:role/service-role/epic-shelter-lambda-lights'
+      Environment:
+        Variables:
+          SSM_PATH: '/epic-shelter'
+          WEBSITE_URL: 'https://vizzyy.com/logs'
+      Events:
+        InvocationLevel:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+  LogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaFunction}"
+      RetentionInDays: 7
