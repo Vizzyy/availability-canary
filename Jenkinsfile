@@ -21,7 +21,7 @@ pipeline {
         quietPeriod(1)
     }
     parameters {
-        booleanParam(name: 'DeleteExisting', defaultValue: false, description: 'Delete existing stack?')
+        booleanParam(name: 'DeleteExisting', defaultValue: true, description: 'Delete existing stack?')
         booleanParam(name: 'Deploy', defaultValue: true, description: 'Deploy latest artifact')
     }
     stages {
@@ -82,7 +82,7 @@ pipeline {
     post {
         success {
             script {
-                sh "echo '${env.GIT_COMMIT}' > ~/userContent/$serviceName-last-success-hash.txt"
+                sh "echo '${env.GIT_COMMIT}' > ~/userContent/$FUNC_NAME-last-success-hash.txt"
                 echo "SUCCESS"
             }
         }
