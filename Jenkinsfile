@@ -5,6 +5,14 @@ currentBuild.displayName = "Availability Canary [$currentBuild.number]"
 FUNC_NAME="availability-canary"
 String commitHash = ""
 
+try {
+    if (ISSUE_NUMBER)
+        echo "Building from pull request..."
+} catch (Exception ignored) {
+    ISSUE_NUMBER = false
+    echo "Building from jenkins job..."
+}
+
 pipeline {
     agent any
     options {
