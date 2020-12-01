@@ -2,8 +2,7 @@
 
 FUNC_NAME="availability-canary"
 
-npm i
-zip -r lambda_function.zip index.js node_modules package.json -q
+zip -r lambda_function.zip availability-canary.py -q
 aws lambda update-function-code --function-name "$FUNC_NAME" --zip-file fileb://lambda_function.zip
 rm lambda_function.zip
 

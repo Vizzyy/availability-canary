@@ -25,7 +25,7 @@ with open('/tmp/lambda-key', 'w') as file:
     file.write(os.environ["lambda-key"])
 
 conn = urllib3.connection_from_url(
-    os.environ.get('WEBSITE_URL'),
+    os.environ.get('lambda-availability-route'),
     cert_file='/tmp/lambda-cert',
     key_file='/tmp/lambda-key'
 )
@@ -39,7 +39,12 @@ def lambda_handler(event=None, context=None):
         'body': response.data
     }
 
-    print(result)
+    print(f"Result status: {result['status']}")
+
+    if response.status == 404:
+        print("Encountered Server Error.")
+        print(vars(response))
+        raise RuntimeError
 
     return result
 
