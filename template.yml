@@ -25,7 +25,7 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/${LambdaFunction}"
       RetentionInDays: 7
-  Alarm:
+  ErrorsAlarm: # Alarm if 5 errors in a row ( 1 per min for 5 min )
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmActions:
@@ -36,6 +36,21 @@ Resources:
           Value: !Ref LambdaFunction
       EvaluationPeriods: 5 # number of failed data points to trigger
       MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 60 # seconds
+      Statistic: Sum
+      Threshold: '1'
+  InvocationsAlarm: # Alarm if we're not getting any invocations
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - arn:aws:sns:us-east-1:476889715112:unhealthyHost
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LambdaFunction
+      EvaluationPeriods: 5 # number of failed data points to trigger
+      MetricName: Invocations
       Namespace: AWS/Lambda
       Period: 60 # seconds
       Statistic: Sum
