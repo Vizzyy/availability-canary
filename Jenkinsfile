@@ -21,7 +21,7 @@ pipeline {
         quietPeriod(1)
     }
     parameters {
-        booleanParam(name: 'DeleteExisting', defaultValue: true, description: 'Delete existing stack?')
+        booleanParam(name: 'DeleteExisting', defaultValue: false, description: 'Delete existing stack?')
         booleanParam(name: 'Deploy', defaultValue: true, description: 'Deploy latest artifact')
     }
     stages {

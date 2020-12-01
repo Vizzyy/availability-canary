@@ -32,7 +32,7 @@ conn = urllib3.connection_from_url(
 
 
 def lambda_handler(event=None, context=None):
-    response = conn.request('GET', os.environ.get('WEBSITE_URL'), timeout=5.0)
+    response = conn.request('GET', os.environ.get('lambda-availability-route'), timeout=5.0)
 
     result = {
         'status': response.status,
