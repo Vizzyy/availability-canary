@@ -29,7 +29,7 @@ pipeline {
         stage("Checkout") {
             steps {
                 script {
-                    prTools.checkoutBranch(ISSUE_NUMBER, "vizzyy/$serviceName")
+                    prTools.checkoutBranch(ISSUE_NUMBER, "vizzyy-org/$FUNC_NAME")
                     commitHash = env.GIT_COMMIT.substring(0,7)
                 }
             }
