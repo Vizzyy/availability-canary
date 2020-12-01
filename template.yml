@@ -20,8 +20,23 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: rate(1 minute)
-  LogsLogGroup:
+  LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${LambdaFunction}"
       RetentionInDays: 7
+  Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - arn:aws:sns:us-east-1:476889715112:unhealthyHost
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LambdaFunction
+      EvaluationPeriods: 5 # number of failed data points to trigger
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 60 # seconds
+      Statistic: Sum
+      Threshold: '1'
