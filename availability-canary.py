@@ -41,7 +41,7 @@ def lambda_handler(event=None, context=None):
 
     print(f"Result status: {result['status']}")
 
-    if response.status == 404:
+    if response.status != 200:
         print("Encountered Server Error.")
         print(vars(response))
         raise RuntimeError
