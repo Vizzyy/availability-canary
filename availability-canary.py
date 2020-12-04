@@ -24,15 +24,29 @@ with open('/tmp/lambda-cert', 'w') as file:
 with open('/tmp/lambda-key', 'w') as file:
     file.write(os.environ["lambda-key"])
 
-conn = urllib3.connection_from_url(
-    os.environ.get('lambda-availability-route'),
-    cert_file='/tmp/lambda-cert',
-    key_file='/tmp/lambda-key'
-)
+
+def routes_generator():
+    routes = os.environ.get('lambda-availability-route').split(',')
+    print(f"Routes: {routes}")
+    while True:
+        for route in routes:
+            yield route
+
+
+target_routes = routes_generator()
 
 
 def lambda_handler(event=None, context=None):
-    response = conn.request('GET', os.environ.get('lambda-availability-route'), timeout=5.0)
+    target_route = next(target_routes)
+    print(f"Checking route: {target_route}")
+
+    conn = urllib3.connection_from_url(
+        target_route,
+        cert_file='/tmp/lambda-cert',
+        key_file='/tmp/lambda-key'
+    )
+
+    response = conn.request('GET', target_route, timeout=5.0)
 
     result = {
         'status': response.status,
