@@ -10,7 +10,14 @@ Resources:
       CodeUri: lambda_function.zip
       MemorySize: 128
       Timeout: 10
-      Role: 'arn:aws:iam::476889715112:role/service-role/epic-shelter-lambda-lights'
+      Policies:
+        - Statement:
+            - Sid: SSMGetParamsByPath
+              Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           SSM_PATH: '/epic-shelter'
