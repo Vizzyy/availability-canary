@@ -35,16 +35,16 @@ def routes_generator():
 
 target_routes = routes_generator()
 
+conn = urllib3.connection_from_url(
+    os.environ.get('lambda-availability-host'),
+    cert_file='/tmp/lambda-cert',
+    key_file='/tmp/lambda-key'
+)
+
 
 def lambda_handler(event=None, context=None):
     target_route = next(target_routes)
     print(f"Checking route: {target_route}")
-
-    conn = urllib3.connection_from_url(
-        target_route,
-        cert_file='/tmp/lambda-cert',
-        key_file='/tmp/lambda-key'
-    )
 
     response = conn.request('GET', target_route, timeout=5.0)
 
