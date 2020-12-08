@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Resources:
-  LambdaFunction:
+  LambdaFunction1:
     Type: 'AWS::Serverless::Function'
     Properties:
-      FunctionName: 'availability-canary'
+      FunctionName: 'logs-canary'
       Handler: availability-canary.lambda_handler
       Runtime: python3.8
       CodeUri: lambda_function.zip
@@ -21,15 +21,140 @@ Resources:
       Environment:
         Variables:
           SSM_PATH: '/epic-shelter'
+          INDEX: '0'
       Events:
         InvocationLevel:
           Type: Schedule
           Properties:
-            Schedule: rate(1 minute)
-  LogGroup:
+            Schedule: cron(0-59/5 * * * ? *)
+  LogGroup1:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${LambdaFunction}"
+      LogGroupName: !Sub "/aws/lambda/${LambdaFunction1}"
+      RetentionInDays: 7
+  LambdaFunction2:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'xmas-canary'
+      Handler: availability-canary.lambda_handler
+      Runtime: python3.8
+      CodeUri: lambda_function.zip
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Sid: SSMGetParamsByPath
+              Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          SSM_PATH: '/epic-shelter'
+          INDEX: '1'
+      Events:
+        InvocationLevel:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1-59/5 * * * ? *)
+  LogGroup2:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaFunction2}"
+      RetentionInDays: 7
+  LambdaFunction3:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'door-canary'
+      Handler: availability-canary.lambda_handler
+      Runtime: python3.8
+      CodeUri: lambda_function.zip
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Sid: SSMGetParamsByPath
+              Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          SSM_PATH: '/epic-shelter'
+          INDEX: '2'
+      Events:
+        InvocationLevel:
+          Type: Schedule
+          Properties:
+            Schedule: cron(2-59/5 * * * ? *)
+  LogGroup3:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaFunction3}"
+      RetentionInDays: 7
+  LambdaFunction4:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'inside-canary'
+      Handler: availability-canary.lambda_handler
+      Runtime: python3.8
+      CodeUri: lambda_function.zip
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Sid: SSMGetParamsByPath
+              Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          SSM_PATH: '/epic-shelter'
+          INDEX: '3'
+      Events:
+        InvocationLevel:
+          Type: Schedule
+          Properties:
+            Schedule: cron(3-59/5 * * * ? *)
+  LogGroup4:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaFunction4}"
+      RetentionInDays: 7
+  LambdaFunction5:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'outside-canary'
+      Handler: availability-canary.lambda_handler
+      Runtime: python3.8
+      CodeUri: lambda_function.zip
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Sid: SSMGetParamsByPath
+              Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          SSM_PATH: '/epic-shelter'
+          INDEX: '4'
+      Events:
+        InvocationLevel:
+          Type: Schedule
+          Properties:
+            Schedule: cron(4-59/5 * * * ? *)
+  LogGroup5:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaFunction5}"
       RetentionInDays: 7
   ErrorsAlarm: # Alarm if 5 errors in a row ( 1 per min for 5 min )
     Type: AWS::CloudWatch::Alarm
@@ -37,9 +162,6 @@ Resources:
       AlarmActions:
         - arn:aws:sns:us-east-1:476889715112:unhealthyHost
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref LambdaFunction
       EvaluationPeriods: 5 # number of failed data points to trigger
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -53,9 +175,6 @@ Resources:
       AlarmActions:
         - arn:aws:sns:us-east-1:476889715112:unhealthyHost
       ComparisonOperator: LessThanThreshold
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref LambdaFunction
       EvaluationPeriods: 5 # number of failed data points to trigger
       MetricName: Invocations
       Namespace: AWS/Lambda

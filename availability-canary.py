@@ -25,15 +25,17 @@ with open('/tmp/lambda-key', 'w') as file:
     file.write(os.environ["lambda-key"])
 
 
-def routes_generator():
-    routes = os.environ.get('lambda-availability-route').split(',')
-    print(f"Routes: {routes}")
-    while True:
-        for route in routes:
-            yield route
+# def routes_generator():
+#     routes = os.environ.get('lambda-availability-route').split(',')
+#     print(f"Routes: {routes}")
+#     while True:
+#         for route in routes:
+#             yield route
+#
+#
+# target_routes = routes_generator()
 
-
-target_routes = routes_generator()
+routes = os.environ.get('lambda-availability-route').split(',')
 
 conn = urllib3.connection_from_url(
     os.environ.get('lambda-availability-host'),
@@ -43,7 +45,7 @@ conn = urllib3.connection_from_url(
 
 
 def lambda_handler(event=None, context=None):
-    target_route = next(target_routes)
+    target_route = routes[int(os.environ.get('INDEX'))]
     print(f"Checking route: {target_route}")
 
     response = conn.request('GET', target_route, timeout=5.0)
