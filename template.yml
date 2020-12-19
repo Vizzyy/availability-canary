@@ -162,10 +162,11 @@ Resources:
       AlarmActions:
         - arn:aws:sns:us-east-1:476889715112:unhealthyHost
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 1 # number of failed data points to trigger
+      DatapointsToAlarm: 1 # this is the M in "M out of N data points to alarm"
+      EvaluationPeriods: 5 # this is the N in "M out of N data points to alarm"
       MetricName: Errors
       Namespace: AWS/Lambda
-      Period: 60 # seconds
+      Period: 60 # seconds between data points
       Statistic: Sum
       Threshold: '1'
       TreatMissingData: breaching
