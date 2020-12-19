@@ -162,7 +162,7 @@ Resources:
       AlarmActions:
         - arn:aws:sns:us-east-1:476889715112:unhealthyHost
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 5 # number of failed data points to trigger
+      EvaluationPeriods: 1 # number of failed data points to trigger
       MetricName: Errors
       Namespace: AWS/Lambda
       Period: 60 # seconds
