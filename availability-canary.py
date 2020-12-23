@@ -46,7 +46,7 @@ secrets_object = json.loads(os.environ["secrets"])
 SSL_CONFIG = {
     'user': secrets_object["grafana"]["DB_USER"],
     'password': secrets_object["grafana"]["DB_PASS"],
-    'host': secrets_object["HUB_HOST"],
+    'host': secrets_object["grafana"]["DB_HOST"],
     'port': secrets_object["grafana"]["DB_PORT"],
     'database': 'graphing_data',
     'client_flags': [ClientFlag.SSL],
@@ -55,6 +55,7 @@ SSL_CONFIG = {
 db = mysql.connector.connect(**SSL_CONFIG)
 db._ssl['version'] = ssl.PROTOCOL_TLSv1_2
 cursor = db.cursor()
+print("Connected to Database!")
 
 
 def store_log(start_time, success, failure, id):
