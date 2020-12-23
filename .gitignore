@@ -1,4 +1,6 @@
 *.iml
 *zip
 packaged.yml
-_*
+
+__pycache*
+*.so
