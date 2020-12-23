@@ -1,13 +1,19 @@
+import datetime
+
 import boto3
 import os
 import urllib3
+import ssl
+from mysql.connector.constants import ClientFlag
+import mysql.connector
+import json
 
 # Setup outside of handler so it only executes once per container
 ssm = boto3.client('ssm')
 paginator = ssm.get_paginator('get_parameters_by_path')
 iterator = paginator.paginate(Path=os.environ.get('SSM_PATH'), WithDecryption=True)
-
 params = []
+
 for page in iterator:
     params.extend(page['Parameters'])
     for param in page.get('Parameters', []):
@@ -24,16 +30,8 @@ with open('/tmp/lambda-cert', 'w') as file:
 with open('/tmp/lambda-key', 'w') as file:
     file.write(os.environ["lambda-key"])
 
-
-# def routes_generator():
-#     routes = os.environ.get('lambda-availability-route').split(',')
-#     print(f"Routes: {routes}")
-#     while True:
-#         for route in routes:
-#             yield route
-#
-#
-# target_routes = routes_generator()
+with open('/tmp/db-cert', 'w') as file:
+    file.write(os.environ["db-cert"])
 
 routes = os.environ.get('lambda-availability-route').split(',')
 
@@ -43,8 +41,40 @@ conn = urllib3.connection_from_url(
     key_file='/tmp/lambda-key'
 )
 
+secrets_object = json.loads(os.environ["secrets"])
+
+SSL_CONFIG = {
+    'user': secrets_object["grafana"]["DB_USER"],
+    'password': secrets_object["grafana"]["DB_PASS"],
+    'host': secrets_object["HUB_HOST"],
+    'port': secrets_object["grafana"]["DB_PORT"],
+    'database': 'graphing_data',
+    'client_flags': [ClientFlag.SSL],
+    'ssl_ca': '/tmp/db-cert',
+}
+db = mysql.connector.connect(**SSL_CONFIG)
+db._ssl['version'] = ssl.PROTOCOL_TLSv1_2
+cursor = db.cursor()
+
+
+def store_log(start_time, success, failure, id):
+    try:
+        now = datetime.datetime.now()
+        elapsed = now - start_time
+        elapsed_ms = elapsed.total_seconds() * 1000  # elapsed milliseconds
+        path = id.split(".com")[1]
+
+        sql = f"INSERT INTO graphing_data.canary_metrics(path, ms_elapsed, timestamp, error, success) " \
+              f"VALUES('{path}', '{elapsed_ms}', '{now}', '{failure}', '{success}')"
+        cursor.execute(sql)
+        db.commit()
+        print(f"{sql}")
+    except Exception as e:
+        print(e)
+
 
 def lambda_handler(event=None, context=None):
+    start_time = datetime.datetime.now()
     target_route = routes[int(os.environ.get('INDEX'))]
     print(f"Checking route: {target_route}")
 
@@ -60,7 +90,10 @@ def lambda_handler(event=None, context=None):
     if response.status != 200:
         print("Encountered Server Error.")
         print(vars(response))
+        store_log(start_time, 0, 1, target_route)
         raise RuntimeError
+
+    store_log(start_time, 1, 0, target_route)
 
     return result
 

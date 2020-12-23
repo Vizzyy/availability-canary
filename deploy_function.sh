@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FUNC_NAME="availability-canary"
+FUNC_NAME=$1
 
 zip -r lambda_function.zip availability-canary.py -q
 aws lambda update-function-code --function-name "$FUNC_NAME" --zip-file fileb://lambda_function.zip
