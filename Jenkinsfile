@@ -52,7 +52,7 @@ pipeline {
         stage("Zip") {
             steps {
                 script {
-                    sh("zip -r lambda_function.zip availability-canary.py -q")
+                    sh("zip -r lambda_function.zip availability-canary.py mysql* google proto* six* -q")
                 }
             }
         }
