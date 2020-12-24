@@ -74,6 +74,7 @@ def store_log(start_time, success, failure, id):
         cursor.execute(sql)
         db.commit()
         print(f"{sql}")
+        db.close()
         print("Database connection closed.")
     except Exception as e:
         print(e)
