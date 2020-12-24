@@ -1,5 +1,4 @@
 import datetime
-
 import boto3
 import os
 import urllib3
@@ -52,14 +51,15 @@ SSL_CONFIG = {
     'client_flags': [ClientFlag.SSL],
     'ssl_ca': '/tmp/db-cert',
 }
-db = mysql.connector.connect(**SSL_CONFIG)
-db._ssl['version'] = ssl.PROTOCOL_TLSv1_2
-cursor = db.cursor()
-print("Connected to Database!")
 
 
 def store_log(start_time, success, failure, id):
     try:
+        db = mysql.connector.connect(**SSL_CONFIG)
+        db._ssl['version'] = ssl.PROTOCOL_TLSv1_2
+        cursor = db.cursor()
+        print("Connected to Database!")
+
         now = datetime.datetime.now()
         elapsed = now - start_time
         elapsed_ms = elapsed.total_seconds() * 1000  # elapsed milliseconds
@@ -70,6 +70,9 @@ def store_log(start_time, success, failure, id):
         cursor.execute(sql)
         db.commit()
         print(f"{sql}")
+        cursor.close()
+        db.close()
+        print("Database connection closed.")
     except Exception as e:
         print(e)
 
