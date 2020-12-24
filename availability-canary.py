@@ -57,6 +57,8 @@ print("Connected to Database!")
 
 
 def store_log(start_time, success, failure, id):
+    global db
+    global cursor
     try:
         now = datetime.datetime.now()
         elapsed = now - start_time
@@ -69,6 +71,11 @@ def store_log(start_time, success, failure, id):
         db.commit()
         print(f"{sql}")
     except Exception as e:
+        cursor.close()
+        db.close()
+        db = mysql.connector.connect(**SSL_CONFIG)
+        cursor = db.cursor()
+        print("Attempted to reconnect to Database!")
         raise RuntimeError(f"Could not store metrics: {e}")
 
 
