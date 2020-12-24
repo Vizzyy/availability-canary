@@ -4,7 +4,7 @@ import os
 import urllib3
 import ssl
 from mysql.connector.constants import ClientFlag
-import mysql.connector
+import mysql.connector.pooling
 import json
 
 # Setup outside of handler so it only executes once per container
@@ -53,10 +53,14 @@ SSL_CONFIG = {
 }
 
 
+cnxpool = mysql.connector.pooling.MySQLConnectionPool(pool_name = "mypool",
+                                                      pool_size = 3,
+                                                      **SSL_CONFIG)
+
+
 def store_log(start_time, success, failure, id):
     try:
-        db = mysql.connector.connect(**SSL_CONFIG)
-        db._ssl['version'] = ssl.PROTOCOL_TLSv1_2
+        db = cnxpool.get_connection()
         cursor = db.cursor()
         print("Connected to Database!")
 
@@ -70,8 +74,6 @@ def store_log(start_time, success, failure, id):
         cursor.execute(sql)
         db.commit()
         print(f"{sql}")
-        cursor.close()
-        db.close()
         print("Database connection closed.")
     except Exception as e:
         print(e)
