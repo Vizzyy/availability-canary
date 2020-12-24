@@ -3,7 +3,6 @@ import datetime
 import boto3
 import os
 import urllib3
-import ssl
 from mysql.connector.constants import ClientFlag
 import mysql.connector
 import json
@@ -53,7 +52,6 @@ SSL_CONFIG = {
     'ssl_ca': '/tmp/db-cert',
 }
 db = mysql.connector.connect(**SSL_CONFIG)
-db._ssl['version'] = ssl.PROTOCOL_TLSv1_2
 cursor = db.cursor()
 print("Connected to Database!")
 
@@ -71,7 +69,7 @@ def store_log(start_time, success, failure, id):
         db.commit()
         print(f"{sql}")
     except Exception as e:
-        print(e)
+        raise RuntimeError(f"Could not store metrics: {e}")
 
 
 def lambda_handler(event=None, context=None):
