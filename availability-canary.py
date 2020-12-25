@@ -59,6 +59,7 @@ def sqs_send(start_time: datetime, target_route: str, success: bool = True):
     }
 
     # Send message to SQS queue
+    print("Pushing message to queue...")
     response = sqs.send_message(QueueUrl=queue_url, MessageBody=(json.dumps(message)))
     print(response)
     if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
