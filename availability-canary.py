@@ -5,6 +5,8 @@ import urllib3
 import json
 
 # Setup outside of handler so it only executes once per container
+from urllib3 import Retry
+
 ssm = boto3.client('ssm')
 sqs = boto3.client('sqs')
 
@@ -71,7 +73,7 @@ def lambda_handler(event=None, context=None):
     target_route = routes[int(os.environ.get('INDEX'))]
     print(f"Checking route: {target_route}")
 
-    response = conn.request('GET', target_route, timeout=5.0)
+    response = conn.request('GET', target_route, timeout=5.0, retries=Retry(total=3))
 
     result = {
         'status': response.status,
