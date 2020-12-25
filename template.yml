@@ -17,6 +17,12 @@ Resources:
               Action:
                 - ssm:GetParametersByPath
               Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - Statement:
+            - Sid: SQSpushRecord
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: 'arn:aws:sqs:us-east-1:476889715112:DatabaseMessageQueue'
         - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
@@ -49,6 +55,12 @@ Resources:
               Action:
                 - ssm:GetParametersByPath
               Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - Statement:
+            - Sid: SQSpushRecord
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: 'arn:aws:sqs:us-east-1:476889715112:DatabaseMessageQueue'
         - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
@@ -81,6 +93,12 @@ Resources:
               Action:
                 - ssm:GetParametersByPath
               Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - Statement:
+            - Sid: SQSpushRecord
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: 'arn:aws:sqs:us-east-1:476889715112:DatabaseMessageQueue'
         - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
@@ -113,6 +131,12 @@ Resources:
               Action:
                 - ssm:GetParametersByPath
               Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - Statement:
+            - Sid: SQSpushRecord
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: 'arn:aws:sqs:us-east-1:476889715112:DatabaseMessageQueue'
         - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
@@ -145,6 +169,12 @@ Resources:
               Action:
                 - ssm:GetParametersByPath
               Resource: 'arn:aws:ssm:us-east-1:476889715112:parameter/epic-shelter'
+        - Statement:
+            - Sid: SQSpushRecord
+              Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: 'arn:aws:sqs:us-east-1:476889715112:DatabaseMessageQueue'
         - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
