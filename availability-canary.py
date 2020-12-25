@@ -1,14 +1,13 @@
 import datetime
-
 import boto3
 import os
 import urllib3
-from mysql.connector.constants import ClientFlag
-import mysql.connector
 import json
 
 # Setup outside of handler so it only executes once per container
 ssm = boto3.client('ssm')
+sqs = boto3.client('sqs')
+
 paginator = ssm.get_paginator('get_parameters_by_path')
 iterator = paginator.paginate(Path=os.environ.get('SSM_PATH'), WithDecryption=True)
 params = []
@@ -40,43 +39,30 @@ conn = urllib3.connection_from_url(
     key_file='/tmp/lambda-key'
 )
 
-secrets_object = json.loads(os.environ["secrets"])
 
-SSL_CONFIG = {
-    'user': secrets_object["grafana"]["DB_USER"],
-    'password': secrets_object["grafana"]["DB_PASS"],
-    'host': secrets_object["grafana"]["DB_HOST"],
-    'port': secrets_object["grafana"]["DB_PORT"],
-    'database': 'graphing_data',
-    'client_flags': [ClientFlag.SSL],
-    'ssl_ca': '/tmp/db-cert',
-}
-db = mysql.connector.connect(**SSL_CONFIG)
-cursor = db.cursor()
-print("Connected to Database!")
+def sqs_send(start_time: datetime, target_route: str, success: bool = True):
+    queue_url = os.environ["queue-url"]
+    now = datetime.datetime.now()
+    elapsed = now - start_time
+    elapsed_ms = elapsed.total_seconds() * 1000  # elapsed milliseconds
+    path = target_route.split(".com")[1]
 
+    message = {
+        "action": "insert",
+        "table": "canary_metrics",
+        "values": {
+            "path": path,
+            "ms_elapsed": elapsed_ms,
+            "timestamp": now.__str__(),
+            "success": success
+        }
+    }
 
-def store_log(start_time, success, failure, id):
-    global db
-    global cursor
-    try:
-        now = datetime.datetime.now()
-        elapsed = now - start_time
-        elapsed_ms = elapsed.total_seconds() * 1000  # elapsed milliseconds
-        path = id.split(".com")[1]
-
-        sql = f"INSERT INTO graphing_data.canary_metrics(path, ms_elapsed, timestamp, error, success) " \
-              f"VALUES('{path}', '{elapsed_ms}', '{now}', '{failure}', '{success}')"
-        cursor.execute(sql)
-        db.commit()
-        print(f"{sql}")
-    except Exception as e:
-        cursor.close()
-        db.close()
-        db = mysql.connector.connect(**SSL_CONFIG)
-        cursor = db.cursor()
-        print("Attempted to reconnect to Database!")
-        raise RuntimeError(f"Could not store metrics: {e}")
+    # Send message to SQS queue
+    response = sqs.send_message(QueueUrl=queue_url, MessageBody=(json.dumps(message)))
+    print(response)
+    if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
+        raise RuntimeError("Could not enqueue message!")
 
 
 def lambda_handler(event=None, context=None):
@@ -96,10 +82,10 @@ def lambda_handler(event=None, context=None):
     if response.status != 200:
         print("Encountered Server Error.")
         print(vars(response))
-        store_log(start_time, 0, 1, target_route)
+        sqs_send(start_time, target_route, False)
         raise RuntimeError
 
-    store_log(start_time, 1, 0, target_route)
+    sqs_send(start_time, target_route, True)
 
     return result
 
