@@ -74,7 +74,7 @@ def sqs_send(start_time: datetime, target_route: str, success: bool = True):
         raise RuntimeError("Could not enqueue message!")
 
 
-def lambda_handler():
+def lambda_handler(event=None, context=None):
     start_time = datetime.datetime.now()
     target_route = next(target_routes)
     print(f"Checking route: {target_route}")
