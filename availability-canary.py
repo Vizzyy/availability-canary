@@ -20,9 +20,6 @@ for page in iterator:
         # Load all SSM params into environment
         os.environ[param.get('Name').split('/')[-1]] = param.get('Value')
 
-for param in params:
-    print(param["Name"])
-
 # Write SSL client cert/key into container
 with open('/tmp/lambda-cert', 'w') as file:
     file.write(os.environ["lambda-cert"])
@@ -33,13 +30,22 @@ with open('/tmp/lambda-key', 'w') as file:
 with open('/tmp/db-cert', 'w') as file:
     file.write(os.environ["db-cert"])
 
-routes = os.environ.get('lambda-availability-route').split(',')
-
 conn = urllib3.connection_from_url(
     os.environ.get('lambda-availability-host'),
     cert_file='/tmp/lambda-cert',
     key_file='/tmp/lambda-key'
 )
+
+
+def routes_generator():
+    routes = os.environ.get('lambda-availability-route').split(',')
+    print(f"Routes: {routes}")
+    while True:
+        for route in routes:
+            yield route
+
+
+target_routes = routes_generator()
 
 
 def sqs_send(start_time: datetime, target_route: str, success: bool = True):
@@ -63,14 +69,14 @@ def sqs_send(start_time: datetime, target_route: str, success: bool = True):
     # Send message to SQS queue
     print("Pushing message to queue...")
     response = sqs.send_message(QueueUrl=queue_url, MessageBody=(json.dumps(message)))
-    print(response)
+    print(message)
     if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
         raise RuntimeError("Could not enqueue message!")
 
 
-def lambda_handler(event=None, context=None):
+def lambda_handler():
     start_time = datetime.datetime.now()
-    target_route = routes[int(os.environ.get('INDEX'))]
+    target_route = next(target_routes)
     print(f"Checking route: {target_route}")
 
     response = conn.request('GET', target_route, timeout=5.0, retries=Retry(total=3))
