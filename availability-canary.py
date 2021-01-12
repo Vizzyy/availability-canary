@@ -6,6 +6,7 @@ import json
 
 # Setup outside of handler so it only executes once per container
 from urllib3 import Retry
+from urllib3.exceptions import MaxRetryError
 
 ssm = boto3.client('ssm')
 sqs = boto3.client('sqs')
@@ -79,7 +80,16 @@ def lambda_handler(event=None, context=None):
     target_route = next(target_routes)
     print(f"Checking route: {target_route}")
 
-    response = conn.request('GET', target_route, timeout=5.0, retries=Retry(total=3))
+    try:
+        response = conn.request('GET', target_route, timeout=5.0, retries=Retry(total=3))
+    except MaxRetryError as max_e:
+        print(f"Could not establish connection to hub: {max_e}")
+        sqs_send(start_time, target_route, False)
+        raise RuntimeError
+    except Exception as e:
+        print(f"Unknown error making request: {e}")
+        sqs_send(start_time, target_route, False)
+        raise RuntimeError
 
     result = {
         'status': response.status,
