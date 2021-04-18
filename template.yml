@@ -51,7 +51,10 @@ Resources:
       Period: 60 # seconds between data points
       Statistic: Sum
       Threshold: '1'
-      TreatMissingData: breaching
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: FunctionName
+          Value: availability-canary
   InvocationsAlarm: # Alarm if we're not getting any invocations
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -65,3 +68,6 @@ Resources:
       Statistic: Sum
       Threshold: '1'
       TreatMissingData: breaching
+      Dimensions:
+        - Name: FunctionName
+          Value: availability-canary
