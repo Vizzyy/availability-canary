@@ -98,7 +98,7 @@ def lambda_handler(event=None, context=None):
         'body': response.data
     }
 
-    print(f"Result status: {result['status']}")
+    print(f"Result status: {result}")
 
     if response.status != 200:
         print("Encountered Server Error.")
