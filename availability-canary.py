@@ -31,12 +31,6 @@ with open('/tmp/lambda-key', 'w') as file:
 with open('/tmp/db-cert', 'w') as file:
     file.write(os.environ["db-cert"])
 
-conn = urllib3.connection_from_url(
-    os.environ.get('lambda-availability-host'),
-    cert_file='/tmp/lambda-cert',
-    key_file='/tmp/lambda-key'
-)
-
 
 def routes_generator():
     routes = os.environ.get('lambda-availability-route').split(',')
@@ -81,6 +75,14 @@ def lambda_handler(event=None, context=None):
     print(f"Checking route: {target_route}")
 
     try:
+        host = target_route.split('https://')[1].split('/')[0]
+
+        conn = urllib3.connection_from_url(
+            f"https://{host}",
+            cert_file='/tmp/lambda-cert',
+            key_file='/tmp/lambda-key'
+        )
+
         response = conn.request('GET', target_route, timeout=5.0, retries=Retry(total=3))
     except MaxRetryError as max_e:
         print(f"Could not establish connection to hub: {max_e}")
